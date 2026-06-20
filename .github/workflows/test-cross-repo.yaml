@@ -1,0 +1,12 @@
+name: Test cross-repo reusable call
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+
+jobs:
+  call-echo-proto:
+    uses: echo-proto/lz-devtools/.github/workflows/reusable-publish-docker.yaml@main
+    secrets: inherit
