@@ -1,11 +1,10 @@
-name: Test cross-repo reusable call v2
+name: Test self-repo reusable call
 
 on:
-  workflow_dispatch:
   push:
     branches:
       - main
 
 jobs:
-  call-echo-proto:
-    uses: echo-proto/lz-devtools/.github/workflows/reusable-publish-docker.yaml@main
+  call-self:
+    uses: senbonzakura-1/blank/.github/workflows/reusable.yaml@main
